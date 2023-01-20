@@ -1,0 +1,344 @@
+diff --git a/build.gradle b/build.gradle
+index 824ab27..429efbe 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -25,6 +25,11 @@ buildscript {
+         google()
+         mavenLocal()
+         mavenCentral()
++        flatDir {
++            dirs 'libs'
++            dirs '../libs'
++            dirs '../../libs'
++        }
+     }
+     dependencies {
+         classpath 'com.android.tools.build:gradle:7.2.0'
+@@ -38,6 +43,11 @@ allprojects {
+         google()
+         mavenLocal()
+         mavenCentral()
++        flatDir {
++            dirs 'libs'
++            dirs '../libs'
++            dirs '../../libs'
++        }
+     }
+ }
+ 
+diff --git a/core/build.gradle b/core/build.gradle
+index a643dc6..cc1c80b 100644
+--- a/core/build.gradle
++++ b/core/build.gradle
+@@ -48,9 +48,16 @@ dependencies {
+     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlinx_coroutines_version"
+ 
+     // Filament
+-    api "com.google.android.filament:filament-android:$filament_version"
+-    api "com.google.android.filament:gltfio-android:$filament_version"
+-    api "com.google.android.filament:filament-utils-android:$filament_version"
++//    api "com.google.android.filament:filament-android:$filament_version"
++//    api "com.google.android.filament:gltfio-android:$filament_version"
++//    api "com.google.android.filament:filament-utils-android:$filament_version"
++    api "com.google.android.filament:filament-android-release:1.31.2@aar"
++    api "com.google.android.filament:gltfio-android-full-release:1.31.2@aar"
++    api "com.google.android.filament:filament-utils-android-release:1.31.2@aar"
++
++//    implementation files("libs/filament-android-release.aar")
++//    implementation files("libs/filament-utils-android-release.aar")
++//    implementation files("libs/gltfio-android-full-release.aar")
+ 
+     // ARCore
+     api "com.google.ar:core:$arcore_version"
+diff --git a/core/src/main/java/com/google/ar/sceneform/SceneView.java b/core/src/main/java/com/google/ar/sceneform/SceneView.java
+index ef9c610..6600016 100644
+--- a/core/src/main/java/com/google/ar/sceneform/SceneView.java
++++ b/core/src/main/java/com/google/ar/sceneform/SceneView.java
+@@ -19,7 +19,7 @@ import com.google.android.filament.Entity;
+ import com.google.android.filament.LightManager;
+ import com.google.android.filament.ToneMapper;
+ import com.google.android.filament.View;
+-import com.google.android.filament.utils.KTXLoader;
++import com.google.android.filament.utils.KTX1Loader;
+ import com.google.ar.sceneform.rendering.Color;
+ import com.google.ar.sceneform.rendering.EngineInstance;
+ import com.google.ar.sceneform.rendering.Renderer;
+@@ -398,7 +398,7 @@ public class SceneView extends SurfaceView implements Choreographer.FrameCallbac
+ //            LifecycleCoroutineScope lifecycleScope = LifecycleOwnerKt.getLifecycleScope(
+ //                    androidx.lifecycle.ViewKt.findViewTreeLifecycleOwner(SceneView.this));
+ //
+-//            KTXEnvironmentKt.loadEnvironmentAsync(KTXLoader.INSTANCE, getContext(),
++//            KTXEnvironmentKt.loadEnvironmentAsync(KTX1Loader.INSTANCE, getContext(),
+ //                    DEFAULT_IBL_LOCATION, null, lifecycleScope, environment -> {
+ //                        SceneViewKt.setEnvironment(SceneView.this, environment);
+ //                        return null;
+@@ -409,7 +409,7 @@ public class SceneView extends SurfaceView implements Choreographer.FrameCallbac
+             SceneViewKt.setEnvironment(SceneView.this,
+                     ResourceLoaderKt.useBuffer(getContext().getAssets().open(DEFAULT_IBL_LOCATION),
+                             (Function1<ByteBuffer, Environment>) buffer ->
+-                                    KTXEnvironmentKt.createEnvironment(KTXLoader.INSTANCE, buffer)));
++                                    KTXEnvironmentKt.createEnvironment(KTX1Loader.INSTANCE, buffer)));
+         } catch (IOException e) {
+             e.printStackTrace();
+         }
+diff --git a/core/src/main/java/com/google/ar/sceneform/rendering/RenderableInstance.java b/core/src/main/java/com/google/ar/sceneform/rendering/RenderableInstance.java
+index 0584e73..7b8f5ce 100644
+--- a/core/src/main/java/com/google/ar/sceneform/rendering/RenderableInstance.java
++++ b/core/src/main/java/com/google/ar/sceneform/rendering/RenderableInstance.java
+@@ -137,11 +137,10 @@ public class RenderableInstance implements AnimatableModel {
+             AssetLoader loader =
+                     new AssetLoader(
+                             engine,
+-                            RenderableInternalFilamentAssetData.getUberShaderLoader(),
++                            RenderableInternalFilamentAssetData.getUberShaderProvider(),
+                             EntityManager.get());
+ 
+-            FilamentAsset createdAsset = renderableData.isGltfBinary ? loader.createAssetFromBinary(renderableData.gltfByteBuffer)
+-                    : loader.createAssetFromJson(renderableData.gltfByteBuffer);
++            FilamentAsset createdAsset = loader.createAsset(renderableData.gltfByteBuffer);
+ 
+             if (createdAsset == null) {
+                 throw new IllegalStateException("Failed to load gltf");
+@@ -211,7 +210,7 @@ public class RenderableInstance implements AnimatableModel {
+             setShadowCaster(renderable.isShadowCaster());
+             setShadowReceiver(renderable.isShadowReceiver());
+ 
+-            filamentAnimator = createdAsset != null ? createdAsset.getAnimator() : null;
++            filamentAnimator = createdAsset != null ? createdAsset.getInstance().getAnimator() : null;
+             animations = new ArrayList<>();
+             for (int i = 0; i < filamentAnimator.getAnimationCount(); i++) {
+                 animations.add(new ModelAnimation(this, filamentAnimator.getAnimationName(i), i,
+diff --git a/core/src/main/java/com/google/ar/sceneform/rendering/RenderableInternalFilamentAssetData.java b/core/src/main/java/com/google/ar/sceneform/rendering/RenderableInternalFilamentAssetData.java
+index f6ffc51..71ea328 100644
+--- a/core/src/main/java/com/google/ar/sceneform/rendering/RenderableInternalFilamentAssetData.java
++++ b/core/src/main/java/com/google/ar/sceneform/rendering/RenderableInternalFilamentAssetData.java
+@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
+ import com.google.android.filament.IndexBuffer;
+ import com.google.android.filament.VertexBuffer;
+ import com.google.android.filament.gltfio.ResourceLoader;
+-import com.google.android.filament.gltfio.UbershaderLoader;
++import com.google.android.filament.gltfio.UbershaderProvider;
+ import com.google.ar.sceneform.math.Vector3;
+ import com.google.ar.sceneform.rendering.RenderableInternalData.MeshData;
+ 
+@@ -29,13 +29,13 @@ public class RenderableInternalFilamentAssetData implements IRenderableInternalD
+   boolean isGltfBinary;
+   ResourceLoader resourceLoader;
+   @Nullable Function<String, Uri> urlResolver;
+-  static UbershaderLoader ubershaderLoader;
++  static UbershaderProvider ubershaderProvider;
+ 
+-  static UbershaderLoader getUberShaderLoader() {
+-    if(ubershaderLoader == null) {
+-      ubershaderLoader = new UbershaderLoader(EngineInstance.getEngine().getFilamentEngine());
++  static UbershaderProvider getUberShaderProvider() {
++    if(ubershaderProvider == null) {
++      ubershaderProvider = new UbershaderProvider(EngineInstance.getEngine().getFilamentEngine());
+     }
+-    return ubershaderLoader;
++    return ubershaderProvider;
+   }
+ 
+   @Override
+diff --git a/core/src/main/java/com/gorisse/thomas/sceneform/Filament.kt b/core/src/main/java/com/gorisse/thomas/sceneform/Filament.kt
+index b7d44a7..df185d8 100644
+--- a/core/src/main/java/com/gorisse/thomas/sceneform/Filament.kt
++++ b/core/src/main/java/com/gorisse/thomas/sceneform/Filament.kt
+@@ -3,7 +3,7 @@ package com.gorisse.thomas.sceneform
+ import com.google.android.filament.EntityManager
+ import com.google.android.filament.gltfio.AssetLoader
+ import com.google.android.filament.gltfio.ResourceLoader
+-import com.google.android.filament.gltfio.UbershaderLoader
++import com.google.android.filament.gltfio.UbershaderProvider
+ import com.google.android.filament.utils.Float3
+ import com.google.android.filament.utils.Float4
+ import com.google.ar.sceneform.rendering.EngineInstance
+@@ -18,16 +18,16 @@ object Filament {
+     val entityManager
+         get() = EntityManager.get()
+ 
+-    val uberShaderLoader by lazy { UbershaderLoader(engine) }
++    val UbershaderProvider by lazy { UbershaderProvider(engine) }
+ 
+     @JvmStatic
+     val assetLoader by lazy {
+-        AssetLoader(engine, uberShaderLoader, entityManager)
++        AssetLoader(engine, UbershaderProvider, entityManager)
+     }
+ 
+     val transformManager get() = engine.transformManager
+ 
+-    val resourceLoader by lazy { ResourceLoader(engine, true, false, false) }
++    val resourceLoader by lazy { ResourceLoader(engine, true) }
+ 
+     val lightManager get() = engine.lightManager
+ 
+diff --git a/core/src/main/java/com/gorisse/thomas/sceneform/SceneView.kt b/core/src/main/java/com/gorisse/thomas/sceneform/SceneView.kt
+index 68a9d94..520da4e 100644
+--- a/core/src/main/java/com/gorisse/thomas/sceneform/SceneView.kt
++++ b/core/src/main/java/com/gorisse/thomas/sceneform/SceneView.kt
+@@ -20,7 +20,7 @@ import com.gorisse.thomas.sceneform.light.Light
+  *
+  * - When added to a Scene, the Skybox fills all untouched pixels.
+  *
+- * @see [KTXLoader.loadEnvironment]
++ * @see [KTX1Loader.loadEnvironment]
+  * @see [HDRLoader.loadEnvironment]
+  */
+ var SceneView.environment: Environment?
+diff --git a/core/src/main/java/com/gorisse/thomas/sceneform/environment/Environment.kt b/core/src/main/java/com/gorisse/thomas/sceneform/environment/Environment.kt
+index 4b8ef49..80c3a42 100644
+--- a/core/src/main/java/com/gorisse/thomas/sceneform/environment/Environment.kt
++++ b/core/src/main/java/com/gorisse/thomas/sceneform/environment/Environment.kt
+@@ -3,7 +3,7 @@ package com.gorisse.thomas.sceneform.environment
+ import com.google.android.filament.IndirectLight
+ import com.google.android.filament.Skybox
+ import com.google.android.filament.utils.HDRLoader
+-import com.google.android.filament.utils.KTXLoader
++import com.google.android.filament.utils.KTX1Loader
+ import com.gorisse.thomas.sceneform.Filament
+ import com.gorisse.thomas.sceneform.light.destroy
+ import java.io.Closeable
+@@ -43,7 +43,7 @@ const val defaultIndirectLightIntensity = 30_000.0f
+  * The Skybox to use to fill untouched pixels, or null to unset the Skybox.
+  *
+  * @see [IndirectLight]
+- * @see [KTXLoader.loadEnvironment]
++ * @see [KTX1Loader.loadEnvironment]
+  * @see [HDRLoader.loadEnvironment]
+  */
+ open class Environment(
+diff --git a/core/src/main/java/com/gorisse/thomas/sceneform/environment/KTXEnvironment.kt b/core/src/main/java/com/gorisse/thomas/sceneform/environment/KTXEnvironment.kt
+index a9f2a85..64086aa 100644
+--- a/core/src/main/java/com/gorisse/thomas/sceneform/environment/KTXEnvironment.kt
++++ b/core/src/main/java/com/gorisse/thomas/sceneform/environment/KTXEnvironment.kt
+@@ -4,7 +4,7 @@ import android.content.Context
+ import androidx.lifecycle.LifecycleCoroutineScope
+ import com.google.android.filament.IndirectLight
+ import com.google.android.filament.Skybox
+-import com.google.android.filament.utils.KTXLoader
++import com.google.android.filament.utils.KTX1Loader
+ import com.gorisse.thomas.sceneform.Filament
+ import com.gorisse.thomas.sceneform.util.fileBuffer
+ import kotlinx.coroutines.Dispatchers
+@@ -24,17 +24,17 @@ class KTXEnvironment(
+ /**
+  * ### Utility for producing environment resources from precompiled cmgen generated KTX files
+  *
+- * [Documentation][KTXLoader.createEnvironment]
++ * [Documentation][KTX1Loader.createEnvironment]
+  *
+  * @param iblKtxFileLocation the ibl file location
+  * [Documentation][com.google.ar.sceneform.util.ResourceLoader.fileBuffer]
+  * @param skyboxKtxFileLocation the skybox file location
+  * [Documentation][com.google.ar.sceneform.util.ResourceLoader.fileBuffer]
+  *
+- * @return [Documentation][KTXLoader.createEnvironment]
++ * @return [Documentation][KTX1Loader.createEnvironment]
+  */
+ @JvmOverloads
+-suspend fun KTXLoader.loadEnvironment(
++suspend fun KTX1Loader.loadEnvironment(
+     context: Context,
+     iblKtxFileLocation: String,
+     skyboxKtxFileLocation: String? = null
+@@ -58,13 +58,13 @@ suspend fun KTXLoader.loadEnvironment(
+  *
+  * For Java compatibility usage.
+  *
+- * Kotlin developers should use [KTXLoader.loadEnvironment]
++ * Kotlin developers should use [KTX1Loader.loadEnvironment]
+  *
+- * [Documentation][KTXLoader.loadEnvironment]
++ * [Documentation][KTX1Loader.loadEnvironment]
+  *
+  */
+ @JvmOverloads
+-fun KTXLoader.loadEnvironmentAsync(
++fun KTX1Loader.loadEnvironmentAsync(
+     context: Context,
+     iblKtxFileLocation: String,
+     skyboxKtxFileLocation: String? = null,
+@@ -91,12 +91,12 @@ fun KTXLoader.loadEnvironmentAsync(
+  *
+  * @return the generated environment indirect light, sphericalHarmonics and skybox from the ktxs.
+  *
+- * @see KTXLoader.createIndirectLight
+- * @see KTXLoader.getSphericalHarmonics
+- * @see KTXLoader.createSkybox
++ * @see KTX1Loader.createIndirectLight
++ * @see KTX1Loader.getSphericalHarmonics
++ * @see KTX1Loader.createSkybox
+  */
+ @JvmOverloads
+-fun KTXLoader.createEnvironment(
++fun KTX1Loader.createEnvironment(
+     iblKtxBuffer: Buffer?,
+     skyboxKtxBuffer: Buffer? = null
+ ) = KTXEnvironment(
+diff --git a/core/src/main/java/com/gorisse/thomas/sceneform/scene/Model.kt b/core/src/main/java/com/gorisse/thomas/sceneform/scene/Model.kt
+index 47aa36a..1ff0d4d 100644
+--- a/core/src/main/java/com/gorisse/thomas/sceneform/scene/Model.kt
++++ b/core/src/main/java/com/gorisse/thomas/sceneform/scene/Model.kt
+@@ -2,7 +2,7 @@ package com.gorisse.thomas.sceneform.scene
+ 
+ import androidx.lifecycle.LifecycleCoroutineScope
+ import com.google.android.filament.utils.HDRLoader
+-import com.google.android.filament.utils.KTXLoader
++import com.google.android.filament.utils.KTX1Loader
+ import com.google.ar.sceneform.rendering.Renderable
+ import kotlinx.coroutines.Deferred
+ import kotlinx.coroutines.Job
+@@ -24,7 +24,7 @@ import kotlinx.coroutines.future.await
+  *
+  * @return the created directional light
+  *
+- * @see [KTXLoader.loadEnvironment]
++ * @see [KTX1Loader.loadEnvironment]
+  * @see [HDRLoader.loadEnvironment]
+  */
+ suspend fun <T : Renderable, B : Renderable.Builder<T, B>> Renderable.Builder<T, B>.build(
+@@ -50,7 +50,7 @@ suspend fun <T : Renderable, B : Renderable.Builder<T, B>> Renderable.Builder<T,
+  *
+  * @return the created directional light
+  *
+- * @see [KTXLoader.loadEnvironment]
++ * @see [KTX1Loader.loadEnvironment]
+  * @see [HDRLoader.loadEnvironment]
+  */
+ suspend fun <T : Renderable, B : Renderable.Builder<T, B>> Renderable.Builder<T, B>.await() =
+diff --git a/core/src/main/java/com/gorisse/thomas/sceneform/scene/Scene.kt b/core/src/main/java/com/gorisse/thomas/sceneform/scene/Scene.kt
+index b87a3f5..374cbab 100644
+--- a/core/src/main/java/com/gorisse/thomas/sceneform/scene/Scene.kt
++++ b/core/src/main/java/com/gorisse/thomas/sceneform/scene/Scene.kt
+@@ -2,7 +2,7 @@ package com.gorisse.thomas.sceneform.scene
+ 
+ import com.google.android.filament.Scene
+ import com.google.android.filament.utils.HDRLoader
+-import com.google.android.filament.utils.KTXLoader
++import com.google.android.filament.utils.KTX1Loader
+ import com.gorisse.thomas.sceneform.environment.Environment
+ 
+ /**
+@@ -23,7 +23,7 @@ import com.gorisse.thomas.sceneform.environment.Environment
+  *
+  * @return the created directional light
+  *
+- * @see [KTXLoader.loadEnvironment]
++ * @see [KTX1Loader.loadEnvironment]
+  * @see [HDRLoader.loadEnvironment]
+  */
+ fun Scene.setEnvironment(environment: Environment?) {
+diff --git a/ux/src/main/java/com/google/ar/sceneform/ux/AugmentedFaceNode.java b/ux/src/main/java/com/google/ar/sceneform/ux/AugmentedFaceNode.java
+index 363e016..2c4701a 100644
+--- a/ux/src/main/java/com/google/ar/sceneform/ux/AugmentedFaceNode.java
++++ b/ux/src/main/java/com/google/ar/sceneform/ux/AugmentedFaceNode.java
+@@ -307,7 +307,7 @@ public class AugmentedFaceNode extends Node {
+ //            Log.d(TAG, type + " " + Arrays.toString(position));
+         }
+         if(faceRegionNode != null && faceRegionNode.getRenderableInstance() != null) {
+-            faceRegionNode.getRenderableInstance().getFilamentAsset().getAnimator().updateBoneMatrices();
++            faceRegionNode.getRenderableInstance().getFilamentAsset().getInstance().getAnimator().updateBoneMatrices();
+         }
+     }
+ 

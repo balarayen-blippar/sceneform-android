@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.filament.IndirectLight
 import com.google.android.filament.Skybox
-import com.google.android.filament.utils.KTXLoader
+import com.google.android.filament.utils.KTX1Loader
 import com.gorisse.thomas.sceneform.Filament
 import com.gorisse.thomas.sceneform.util.fileBuffer
 import kotlinx.coroutines.Dispatchers
@@ -24,17 +24,17 @@ class KTXEnvironment(
 /**
  * ### Utility for producing environment resources from precompiled cmgen generated KTX files
  *
- * [Documentation][KTXLoader.createEnvironment]
+ * [Documentation][KTX1Loader.createEnvironment]
  *
  * @param iblKtxFileLocation the ibl file location
  * [Documentation][com.google.ar.sceneform.util.ResourceLoader.fileBuffer]
  * @param skyboxKtxFileLocation the skybox file location
  * [Documentation][com.google.ar.sceneform.util.ResourceLoader.fileBuffer]
  *
- * @return [Documentation][KTXLoader.createEnvironment]
+ * @return [Documentation][KTX1Loader.createEnvironment]
  */
 @JvmOverloads
-suspend fun KTXLoader.loadEnvironment(
+suspend fun KTX1Loader.loadEnvironment(
     context: Context,
     iblKtxFileLocation: String,
     skyboxKtxFileLocation: String? = null
@@ -58,13 +58,13 @@ suspend fun KTXLoader.loadEnvironment(
  *
  * For Java compatibility usage.
  *
- * Kotlin developers should use [KTXLoader.loadEnvironment]
+ * Kotlin developers should use [KTX1Loader.loadEnvironment]
  *
- * [Documentation][KTXLoader.loadEnvironment]
+ * [Documentation][KTX1Loader.loadEnvironment]
  *
  */
 @JvmOverloads
-fun KTXLoader.loadEnvironmentAsync(
+fun KTX1Loader.loadEnvironmentAsync(
     context: Context,
     iblKtxFileLocation: String,
     skyboxKtxFileLocation: String? = null,
@@ -91,12 +91,12 @@ fun KTXLoader.loadEnvironmentAsync(
  *
  * @return the generated environment indirect light, sphericalHarmonics and skybox from the ktxs.
  *
- * @see KTXLoader.createIndirectLight
- * @see KTXLoader.getSphericalHarmonics
- * @see KTXLoader.createSkybox
+ * @see KTX1Loader.createIndirectLight
+ * @see KTX1Loader.getSphericalHarmonics
+ * @see KTX1Loader.createSkybox
  */
 @JvmOverloads
-fun KTXLoader.createEnvironment(
+fun KTX1Loader.createEnvironment(
     iblKtxBuffer: Buffer?,
     skyboxKtxBuffer: Buffer? = null
 ) = KTXEnvironment(
