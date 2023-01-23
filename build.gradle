@@ -15,8 +15,8 @@ buildscript {
         fragment_version = '1.4.1'
         constraintlayout_version = '2.1.3'
 
-        filament_version = '1.21.1'
-        arcore_version = '1.31.0'
+        filament_version = '1.31.2'
+        arcore_version = '1.35.0'
         fuel_version = '2.3.1'
 
         material_version = '1.6.0'

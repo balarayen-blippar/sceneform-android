@@ -88,16 +88,35 @@ public class ExternalTexture {
         // Explicitly set the surface and surfaceTexture to null, since they are unused in this case.
         surfaceTexture = null;
         surface = null;
+//
+//        // Create the filament stream.
+//        Stream stream =
+//                new Stream.Builder()
+//                        .stream(textureId)
+//                        .width(width)
+//                        .height(height)
+//                        .build(EngineInstance.getEngine().getFilamentEngine());
+//
+//        initialize(stream);
 
-        // Create the filament stream.
-        Stream stream =
-                new Stream.Builder()
-                        .stream(textureId)
-                        .width(width)
-                        .height(height)
-                        .build(EngineInstance.getEngine().getFilamentEngine());
+        this.filamentTexture = new Texture
+                .Builder()
+                .importTexture(textureId)
+                .width(width)
+                .height(height)
+                .sampler(Texture.Sampler.SAMPLER_EXTERNAL)
+                .format(Texture.InternalFormat.RGB8)
+                .build(EngineInstance.getEngine().getFilamentEngine());
 
-        initialize(stream);
+        filamentStream = new Stream.Builder()
+                .build(EngineInstance.getEngine().getFilamentEngine());
+
+        this.filamentTexture.setExternalStream(EngineInstance.getEngine().getFilamentEngine(),
+                filamentStream);
+
+        ResourceManager.getInstance()
+                .getExternalTextureCleanupRegistry()
+                .register(this, new CleanupCallback(filamentTexture, filamentStream));
     }
 
 

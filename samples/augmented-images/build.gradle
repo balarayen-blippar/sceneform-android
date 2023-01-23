@@ -29,7 +29,7 @@ android {
 }
 
 dependencies {
-    implementation "com.google.android.filament:filamat-android:$filament_version"
+    implementation "com.google.android.filament:filamat-android-full-release:$filament_version@aar"
 
     implementation "androidx.appcompat:appcompat:$appcompat_version"
     implementation "androidx.fragment:fragment-ktx:$fragment_ktx_version"
