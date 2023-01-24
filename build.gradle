@@ -25,11 +25,6 @@ buildscript {
         google()
         mavenLocal()
         mavenCentral()
-        flatDir {
-            dirs 'libs'
-            dirs '../libs'
-            dirs '../../libs'
-        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.2.0'
@@ -43,11 +38,6 @@ allprojects {
         google()
         mavenLocal()
         mavenCentral()
-        flatDir {
-            dirs 'libs'
-            dirs '../libs'
-            dirs '../../libs'
-        }
     }
 }
 

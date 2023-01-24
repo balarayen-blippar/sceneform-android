@@ -51,9 +51,9 @@ dependencies {
 //    api "com.google.android.filament:filament-android:$filament_version"
 //    api "com.google.android.filament:gltfio-android:$filament_version"
 //    api "com.google.android.filament:filament-utils-android:$filament_version"
-    api "com.google.android.filament:filament-android-release:$filament_version@aar"
-    api "com.google.android.filament:gltfio-android-full-release:$filament_version@aar"
-    api "com.google.android.filament:filament-utils-android-release:$filament_version@aar"
+    api project(":filament-android")
+    api project(":gltfio-android")
+    api project(":filament-utils-android")
 
     // ARCore
     api "com.google.ar:core:$arcore_version"
