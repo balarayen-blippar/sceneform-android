@@ -56,7 +56,7 @@ public class ArSceneView extends SceneView {
     // pauseResumeTask is modified on the main thread only.  It may be completed on background
     // threads however.
     private final SequentialTask pauseResumeTask = new SequentialTask();
-    public int cameraTextureId;
+    public int[] cameraTextureIds;
     private boolean hasSetTextureNames = false;
     @Nullable
     private Session session;
@@ -456,7 +456,7 @@ public class ArSceneView extends SceneView {
             // This is done during onBeginFrame rather than setSession since the session is
             // not guaranteed to have been initialized during the execution of setSession.
             if (!hasSetTextureNames) {
-                session.setCameraTextureName(cameraTextureId);
+                session.setCameraTextureNames(cameraTextureIds);
                 hasSetTextureNames = true;
             }
 
@@ -510,12 +510,12 @@ public class ArSceneView extends SceneView {
 
             if (cameraStream.getDepthOcclusionMode() == CameraStream.DepthOcclusionMode.DEPTH_OCCLUSION_ENABLED) {
                 if (cameraStream.getDepthMode() == CameraStream.DepthMode.DEPTH) {
-                    try (Image depthImage = currentFrame.acquireDepthImage()) {
+                    try (Image depthImage = currentFrame.acquireDepthImage16Bits()) {
                         cameraStream.recalculateOcclusion(depthImage);
                     } catch (NotYetAvailableException | DeadlineExceededException ignored) {
                     }
                 } else if (cameraStream.getDepthMode() == CameraStream.DepthMode.RAW_DEPTH) {
-                    try (Image depthImage = currentFrame.acquireRawDepthImage()) {
+                    try (Image depthImage = currentFrame.acquireDepthImage16Bits()) {
                         cameraStream.recalculateOcclusion(depthImage);
                     } catch (NotYetAvailableException | DeadlineExceededException ignored) {
                     }
@@ -561,8 +561,13 @@ public class ArSceneView extends SceneView {
         planeRenderer = new PlaneRenderer(renderer);
 
         // Initialize Camera Stream
-        cameraTextureId = GLHelper.createCameraTexture();
-        cameraStream = new CameraStream(cameraTextureId, renderer);
+        cameraTextureIds = new int[4];
+
+        for (int i = 0; i < cameraTextureIds.length; ++i) {
+            cameraTextureIds[i] = GLHelper.createCameraTexture();
+        }
+
+        cameraStream = new CameraStream(cameraTextureIds, renderer);
     }
 
     public void setCameraStreamRenderPriority(@IntRange(from = 0L, to = 7L) int priority) {
