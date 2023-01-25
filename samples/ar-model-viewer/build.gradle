@@ -37,19 +37,19 @@ android {
 
 dependencies {
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinx_coroutines_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$rootProject.ext.kotlin_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.kotlinx_coroutines_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.kotlinx_coroutines_version"
 
     // AndroidX
-    implementation "androidx.core:core-ktx:$core_ktx_version"
-    implementation "androidx.appcompat:appcompat:$appcompat_version"
-    implementation "androidx.fragment:fragment-ktx:$fragment_ktx_version"
+    implementation "androidx.core:core-ktx:$rootProject.core_ktx_version"
+    implementation "androidx.appcompat:appcompat:$rootProject.appcompat_version"
+    implementation "androidx.fragment:fragment-ktx:$rootProject.fragment_ktx_version"
 
     // Material
-    implementation "com.google.android.material:material:$material_version"
+    implementation "com.google.android.material:material:$rootProject.material_version"
 
     // Sceneform
-    releaseImplementation "com.gorisse.thomas.sceneform:sceneform:1.21.0"
+    releaseImplementation project(":sceneform")
     debugApi project(":sceneform")
 }

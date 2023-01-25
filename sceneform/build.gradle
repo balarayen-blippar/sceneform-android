@@ -31,6 +31,7 @@ android {
     androidResources {
         noCompress 'filamat', 'ktx'
     }
+    namespace 'com.google.ar.sceneform.sceneform'
 }
 
 dependencies {

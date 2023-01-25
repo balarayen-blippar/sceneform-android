@@ -22,6 +22,7 @@ android {
     androidResources {
         noCompress 'filamat', 'ktx'
     }
+    namespace 'com.google.ar.sceneform.samples.depth'
 
 }
 
@@ -29,6 +30,6 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$appcompat_version"
     implementation "androidx.fragment:fragment:$fragment_version"
 
-    releaseImplementation "com.gorisse.thomas.sceneform:sceneform:1.21.0"
+    releaseImplementation project(":sceneform")
     debugApi project(":sceneform")
 }
