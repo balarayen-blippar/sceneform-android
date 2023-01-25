@@ -36,12 +36,8 @@ android {
 }
 
 dependencies {
-    embed project(":core")
-    embed project(":ux")
-    embed project(":filamat-android")
-    embed project(":filament-android")
-    embed project(":gltfio-android")
-    embed project(":filament-utils-android")
+    api project(":core")
+    api project(":ux")
 }
 
 //mavenPublish {
