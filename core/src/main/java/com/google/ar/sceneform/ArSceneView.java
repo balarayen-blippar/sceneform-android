@@ -504,6 +504,8 @@ public class ArSceneView extends SceneView {
                 updatedTrackables = currentFrame.getUpdatedTrackables(Trackable.class);
             }
 
+            cameraStream.UpdateCameraTexture();
+
             // At the start of the frame, update the tracked pose of the camera
             // to use in any calculations during the frame.
             getScene().getCamera().updateTrackedPose(currentArCamera);

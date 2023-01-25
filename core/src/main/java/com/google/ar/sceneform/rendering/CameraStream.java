@@ -81,11 +81,13 @@ public class CameraStream {
 
     @Nullable
     private ExternalTexture[] cameraTextures;
+    private int currentCameraTextureIndex = 0;
+
     @Nullable
     private DepthTexture depthTexture;
 
     @Nullable
-    private Material[] cameraMaterials = null;
+    private Material cameraMaterial = null;
     @Nullable
     private Material occlusionCameraMaterial = null;
 
@@ -132,11 +134,8 @@ public class CameraStream {
         cameraVertexBuffer.setBufferAt(
                 engine.getFilamentEngine(), UV_BUFFER_INDEX, transformedCameraUvCoords);
 
-        cameraMaterials = new Material[cameraTextureIds.length];
-        for (int i = 0; i < cameraMaterials.length; ++i) {
-            setupStandardCameraMaterial(renderer, i);
-            setupOcclusionCameraMaterial(renderer);
-        }
+        setupStandardCameraMaterial(renderer);
+        setupOcclusionCameraMaterial(renderer);
     }
 
     private FloatBuffer createCameraUVBuffer() {
@@ -176,7 +175,7 @@ public class CameraStream {
                 .build(engine.getFilamentEngine());
     }
 
-    void setupStandardCameraMaterial(Renderer renderer, final int materialIndex) {
+    void setupStandardCameraMaterial(Renderer renderer) {
         CompletableFuture<Material> materialFuture =
                 Material.builder()
                         .setSource(
@@ -199,8 +198,8 @@ public class CameraStream {
                                             4);
 
                             // Only set the camera material if it hasn't already been set to a custom material.
-                            if (cameraMaterials[materialIndex] == null) {
-                                cameraMaterials[materialIndex] = material;
+                            if (cameraMaterial == null) {
+                                cameraMaterial = material;
                             }
                         })
                 .exceptionally(
@@ -243,8 +242,9 @@ public class CameraStream {
                         });
     }
 
-    private void setCameraMaterial(Material material, int materialIndex) {
-        if (cameraMaterials[materialIndex] == null)
+    private void setCameraMaterial(Material material) {
+        cameraMaterial = material;
+        if (cameraMaterial == null)
             return;
 
         // The ExternalTexture can't be created until we receive the first AR Core Frame so that we
@@ -255,12 +255,27 @@ public class CameraStream {
             return;
         }
 
-        cameraMaterials[materialIndex].setExternalTexture(
-                MATERIAL_CAMERA_TEXTURE + "_" + materialIndex,
-                Preconditions.checkNotNull(cameraTextures[materialIndex]));
+        cameraMaterial.setExternalTexture(
+                MATERIAL_CAMERA_TEXTURE,
+                Preconditions.checkNotNull(cameraTextures[currentCameraTextureIndex]));
+    }
+
+    public void UpdateCameraTexture() {
+        if (!isTextureInitialized()) {
+            return;
+        }
+
+        if (++currentCameraTextureIndex >= cameraTextures.length) {
+            currentCameraTextureIndex = 0;
+        }
+
+        cameraMaterial.setExternalTexture(
+                MATERIAL_CAMERA_TEXTURE,
+                cameraTextures[currentCameraTextureIndex]);
     }
 
     private void setOcclusionMaterial(Material material) {
+        occlusionCameraMaterial = material;
         if (occlusionCameraMaterial == null)
             return;
 
@@ -378,12 +393,10 @@ public class CameraStream {
                 initOrUpdateRenderableMaterial(occlusionCameraMaterial);
             }
         } else {
-            for (int i = 0; i < cameraMaterials.length; ++i) {
-                if (cameraMaterials[i] != null) {
-                    isTextureInitialized = true;
-                    setCameraMaterial(cameraMaterials[i], i);
-                    initOrUpdateRenderableMaterial(cameraMaterials[i]);
-                }
+            if (cameraMaterial != null) {
+                isTextureInitialized = true;
+                setCameraMaterial(cameraMaterial);
+                initOrUpdateRenderableMaterial(cameraMaterial);
             }
         }
     }
@@ -539,11 +552,9 @@ public class CameraStream {
                 initOrUpdateRenderableMaterial(occlusionCameraMaterial);
             }
         } else {
-            for (int i = 0; i < cameraMaterials.length; ++i) {
-                if (cameraMaterials[i] != null) {
-                    setCameraMaterial(cameraMaterials[i], i);
-                    initOrUpdateRenderableMaterial(cameraMaterials[i]);
-                }
+            if (cameraMaterial != null) {
+                setCameraMaterial(cameraMaterial);
+                initOrUpdateRenderableMaterial(cameraMaterial);
             }
         }
 
