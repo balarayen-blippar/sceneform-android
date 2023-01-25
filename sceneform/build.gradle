@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
+    id 'com.kezong.fat-aar'
 //    id 'com.vanniktech.maven.publish'
 }
 
@@ -35,8 +36,12 @@ android {
 }
 
 dependencies {
-    api project(":core")
-    api project(":ux")
+    embed project(":core")
+    embed project(":ux")
+    embed project(":filamat-android")
+    embed project(":filament-android")
+    embed project(":gltfio-android")
+    embed project(":filament-utils-android")
 }
 
 //mavenPublish {
