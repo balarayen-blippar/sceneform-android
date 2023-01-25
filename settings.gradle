@@ -15,6 +15,11 @@ include ':filament-android'
 include ':filament-utils-android'
 include ':gltfio-android'
 
+project(':filamat-android').projectDir = new File('libs/filamat-android')
+project(':filament-android').projectDir = new File('libs/filament-android')
+project(':filament-utils-android').projectDir = new File('libs/filament-utils-android')
+project(':gltfio-android').projectDir = new File('libs/gltfio-android')
+
 // Dirs
 //project(':sample-3d-model-viewer').projectDir = new File('samples/3d-model-viewer')
 //project(':sample-ar-model-viewer').projectDir = new File('samples/ar-model-viewer')
