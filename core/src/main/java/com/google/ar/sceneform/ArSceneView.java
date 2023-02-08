@@ -467,6 +467,10 @@ public class ArSceneView extends SceneView {
                 return false;
             }
 
+            if (currentFrameTimestamp == 0L) {
+                arFrameUpdated = false;
+            }
+
             if (currentFrameTimestamp == frame.getTimestamp()) {
                 arFrameUpdated = false;
             }
