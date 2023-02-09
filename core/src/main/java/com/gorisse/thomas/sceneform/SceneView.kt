@@ -20,7 +20,7 @@ import com.gorisse.thomas.sceneform.light.Light
  *
  * - When added to a Scene, the Skybox fills all untouched pixels.
  *
- * @see [KTXLoader.loadEnvironment]
+ * @see [KTX1Loader.loadEnvironment]
  * @see [HDRLoader.loadEnvironment]
  */
 var SceneView.environment: Environment?

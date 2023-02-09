@@ -29,14 +29,15 @@ android {
 }
 
 dependencies {
-    implementation "com.google.android.filament:filamat-android:$filament_version"
+//    implementation "com.google.android.filament:filamat-android-full-release:$filament_version@aar"
+    implementation project(":filamat-android")
 
     implementation "androidx.appcompat:appcompat:$appcompat_version"
     implementation "androidx.fragment:fragment-ktx:$fragment_ktx_version"
 
     implementation "com.google.android.material:material:$material_version"
 
-    releaseImplementation "com.gorisse.thomas.sceneform:sceneform:1.21.0"
+    releaseImplementation project(":sceneform")
     debugApi project(":sceneform")
 
 }

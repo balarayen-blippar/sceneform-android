@@ -62,7 +62,7 @@ public class CameraStream {
     private static final int UNINITIALIZED_FILAMENT_RENDERABLE = -1;
 
     private final Scene scene;
-    private final int cameraTextureId;
+    private final int[] cameraTextureIds;
     private final IndexBuffer cameraIndexBuffer;
     private final VertexBuffer cameraVertexBuffer;
     private final FloatBuffer cameraUvCoords;
@@ -80,7 +80,9 @@ public class CameraStream {
     private DepthOcclusionMode depthOcclusionMode = DepthOcclusionMode.DEPTH_OCCLUSION_DISABLED;
 
     @Nullable
-    private ExternalTexture cameraTexture;
+    private ExternalTexture[] cameraTextures;
+    private int currentCameraTextureIndex = 0;
+
     @Nullable
     private DepthTexture depthTexture;
 
@@ -94,9 +96,9 @@ public class CameraStream {
     private boolean isTextureInitialized = false;
 
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored", "initialization"})
-    public CameraStream(int cameraTextureId, Renderer renderer) {
+    public CameraStream(int[] cameraTextureIds, Renderer renderer) {
         scene = renderer.getFilamentScene();
-        this.cameraTextureId = cameraTextureId;
+        this.cameraTextureIds = cameraTextureIds;
 
         engine = EngineInstance.getEngine();
 
@@ -255,7 +257,21 @@ public class CameraStream {
 
         cameraMaterial.setExternalTexture(
                 MATERIAL_CAMERA_TEXTURE,
-                Preconditions.checkNotNull(cameraTexture));
+                Preconditions.checkNotNull(cameraTextures[currentCameraTextureIndex]));
+    }
+
+    public void UpdateCameraTexture() {
+        if (!isTextureInitialized()) {
+            return;
+        }
+
+        if (++currentCameraTextureIndex >= cameraTextures.length) {
+            currentCameraTextureIndex = 0;
+        }
+
+        cameraMaterial.setExternalTexture(
+                MATERIAL_CAMERA_TEXTURE,
+                cameraTextures[currentCameraTextureIndex]);
     }
 
     private void setOcclusionMaterial(Material material) {
@@ -273,7 +289,7 @@ public class CameraStream {
 
         occlusionCameraMaterial.setExternalTexture(
                 MATERIAL_CAMERA_TEXTURE,
-                Preconditions.checkNotNull(cameraTexture));
+                Preconditions.checkNotNull(cameraTextures[0]));
     }
 
 
@@ -353,15 +369,19 @@ public class CameraStream {
         }
 
         // External Camera Texture
-        if (cameraTexture == null) {
+        if (cameraTextures == null) {
+            cameraTextures = new ExternalTexture[cameraTextureIds.length];
+
             Camera arCamera = frame.getCamera();
             CameraIntrinsics intrinsics = arCamera.getTextureIntrinsics();
             int[] dimensions = intrinsics.getImageDimensions();
 
-            cameraTexture = new ExternalTexture(
-                    cameraTextureId,
-                    dimensions[0],
-                    dimensions[1]);
+            for (int i = 0; i < cameraTextureIds.length; ++i) {
+                cameraTextures[i] = new ExternalTexture(
+                        cameraTextureIds[i],
+                        dimensions[0],
+                        dimensions[1]);
+            }
         }
 
         if (depthOcclusionMode == DepthOcclusionMode.DEPTH_OCCLUSION_ENABLED && (

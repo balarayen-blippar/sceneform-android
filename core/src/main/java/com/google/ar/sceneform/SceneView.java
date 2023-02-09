@@ -19,7 +19,7 @@ import com.google.android.filament.Entity;
 import com.google.android.filament.LightManager;
 import com.google.android.filament.ToneMapper;
 import com.google.android.filament.View;
-import com.google.android.filament.utils.KTXLoader;
+import com.google.android.filament.utils.KTX1Loader;
 import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.EngineInstance;
 import com.google.ar.sceneform.rendering.Renderer;
@@ -398,7 +398,7 @@ public class SceneView extends SurfaceView implements Choreographer.FrameCallbac
 //            LifecycleCoroutineScope lifecycleScope = LifecycleOwnerKt.getLifecycleScope(
 //                    androidx.lifecycle.ViewKt.findViewTreeLifecycleOwner(SceneView.this));
 //
-//            KTXEnvironmentKt.loadEnvironmentAsync(KTXLoader.INSTANCE, getContext(),
+//            KTXEnvironmentKt.loadEnvironmentAsync(KTX1Loader.INSTANCE, getContext(),
 //                    DEFAULT_IBL_LOCATION, null, lifecycleScope, environment -> {
 //                        SceneViewKt.setEnvironment(SceneView.this, environment);
 //                        return null;
@@ -409,7 +409,7 @@ public class SceneView extends SurfaceView implements Choreographer.FrameCallbac
             SceneViewKt.setEnvironment(SceneView.this,
                     ResourceLoaderKt.useBuffer(getContext().getAssets().open(DEFAULT_IBL_LOCATION),
                             (Function1<ByteBuffer, Environment>) buffer ->
-                                    KTXEnvironmentKt.createEnvironment(KTXLoader.INSTANCE, buffer)));
+                                    KTXEnvironmentKt.createEnvironment(KTX1Loader.INSTANCE, buffer)));
         } catch (IOException e) {
             e.printStackTrace();
         }

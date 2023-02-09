@@ -2,7 +2,7 @@ package com.gorisse.thomas.sceneform.scene
 
 import com.google.android.filament.Scene
 import com.google.android.filament.utils.HDRLoader
-import com.google.android.filament.utils.KTXLoader
+import com.google.android.filament.utils.KTX1Loader
 import com.gorisse.thomas.sceneform.environment.Environment
 
 /**
@@ -23,7 +23,7 @@ import com.gorisse.thomas.sceneform.environment.Environment
  *
  * @return the created directional light
  *
- * @see [KTXLoader.loadEnvironment]
+ * @see [KTX1Loader.loadEnvironment]
  * @see [HDRLoader.loadEnvironment]
  */
 fun Scene.setEnvironment(environment: Environment?) {

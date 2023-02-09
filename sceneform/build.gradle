@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
+    id 'com.kezong.fat-aar'
 //    id 'com.vanniktech.maven.publish'
 }
 
@@ -31,6 +32,7 @@ android {
     androidResources {
         noCompress 'filamat', 'ktx'
     }
+    namespace 'com.google.ar.sceneform.sceneform'
 }
 
 dependencies {

@@ -3,7 +3,7 @@ package com.gorisse.thomas.sceneform.environment
 import com.google.android.filament.IndirectLight
 import com.google.android.filament.Skybox
 import com.google.android.filament.utils.HDRLoader
-import com.google.android.filament.utils.KTXLoader
+import com.google.android.filament.utils.KTX1Loader
 import com.gorisse.thomas.sceneform.Filament
 import com.gorisse.thomas.sceneform.light.destroy
 import java.io.Closeable
@@ -43,7 +43,7 @@ const val defaultIndirectLightIntensity = 30_000.0f
  * The Skybox to use to fill untouched pixels, or null to unset the Skybox.
  *
  * @see [IndirectLight]
- * @see [KTXLoader.loadEnvironment]
+ * @see [KTX1Loader.loadEnvironment]
  * @see [HDRLoader.loadEnvironment]
  */
 open class Environment(

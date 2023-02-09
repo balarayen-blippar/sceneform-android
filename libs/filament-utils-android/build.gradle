@@ -1,0 +1,2 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('filament-utils-android-release.aar'))
