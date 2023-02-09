@@ -567,7 +567,7 @@ public class ArSceneView extends SceneView {
         planeRenderer = new PlaneRenderer(renderer);
 
         // Initialize Camera Stream
-        cameraTextureIds = new int[4];
+        cameraTextureIds = new int[2];
 
         for (int i = 0; i < cameraTextureIds.length; ++i) {
             cameraTextureIds[i] = GLHelper.createCameraTexture();
